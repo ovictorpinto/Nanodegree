@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Portfolio</string>
+
+    <string name="abrir_">Esse botão vai abrir o aplicativo %s</string>
+    <string name="filmes_populares">Filmes populares</string>
+    <string name="stock_hawk">Stock Hawk</string>
+    <string name="faca_maior">Faça-o maior</string>
+    <string name="aplicativo_material">Faça seu aplicativo com Material</string>
+    <string name="seja_onipresente">Seja onipresente</string>
+    <string name="capstone">Capstone</string>
+</resources>
