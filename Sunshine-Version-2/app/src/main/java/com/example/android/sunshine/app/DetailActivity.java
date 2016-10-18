@@ -22,15 +22,9 @@ public class DetailActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_detail, menu);
-
-        // Locate MenuItem with ShareActionProvider
-        MenuItem item = menu.findItem(R.id.menu_item_share);
-
-        // Fetch and store ShareActionProvider
-
-
         return true;
     }
 
@@ -46,9 +40,6 @@ public class DetailActivity extends ActionBarActivity {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
             return true;
-        } else if (id == R.id.menu_item_share) {
-            Intent intent = new Intent(Intent.ACTION_SEND);
-//            mShareActionProvider.setShareIntent();
         }
 
         return super.onOptionsItemSelected(item);
