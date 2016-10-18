@@ -1,11 +1,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto"
       xmlns:tools="http://schemas.android.com/tools"
-      tools:context=".MainActivity">
-    <item android:id="@+id/action_location_prefered"
-          android:orderInCategory="99"
-          android:title="@string/map"
-          app:showAsAction="never"/>
+      tools:context="com.example.android.sunshine.app.DetailActivity">
+    <item
+        android:id="@+id/menu_item_share"
+        android:actionProviderClass=
+            "android.widget.ShareActionProvider"
+        android:title="@string/share"
+        app:showAsAction="ifRoom"/>
 
     <item android:id="@+id/action_settings"
           android:orderInCategory="100"
