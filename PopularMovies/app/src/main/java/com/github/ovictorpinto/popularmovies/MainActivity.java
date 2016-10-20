@@ -1,11 +1,21 @@
 package com.github.ovictorpinto.popularmovies;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -29,13 +39,30 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String PARAM_API_KEY = "api_key";
     private GridView gridView;
     private static final String TAG = MainActivity.class.getSimpleName();
+
+    private static final int SORT_POPULAR = 0;
+    private static final int SORT_VOTED = 1;
+
+    private SharedPreferences mSharedPreferences;
+    private int mSortBy;
+    private LoadMovies mLoadMovies;
+    private View mMainView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        mSortBy = mSharedPreferences.getInt(getString(R.string.pref_sort), SORT_POPULAR);
+
         setContentView(R.layout.activity_main);
+
+        mMainView = findViewById(R.id.activity_main);
+
         gridView = (GridView) findViewById(R.id.gridview);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -45,11 +72,85 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-        LoadMovies task = new LoadMovies();
-        task.execute();
+
+        refresh();
     }
 
+    private void refresh() {
+        if (isOnline()) {
+            if (mLoadMovies != null) {
+                mLoadMovies.cancel(true);
+            }
+            mLoadMovies = new LoadMovies();
+            mLoadMovies.execute();
+        } else {
+            View.OnClickListener listener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    refresh();
+                }
+            };
+            Snackbar.make(mMainView, R.string.offline, Snackbar.LENGTH_INDEFINITE).setAction(R.string.retry, listener).show();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.menu_sort, menu);
+        return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mLoadMovies != null) {
+            mLoadMovies.cancel(true);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_sort) {
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (which != mSortBy) {
+                        mSortBy = which;
+                        SharedPreferences.Editor editor = mSharedPreferences.edit();
+                        editor.putInt(getString(R.string.pref_sort), mSortBy);
+                        editor.apply();
+                        refresh();
+                    }
+                    dialog.dismiss();
+                }
+            };
+            builder.setSingleChoiceItems(R.array.sort_movies, mSortBy, listener).show();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Verify is device has connection
+     * @return true if has a networking connection
+     */
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+    /**
+     * Task load movies from api themoviedb.
+     */
     class LoadMovies extends AsyncTask<Void, Void, List<Movie>> {
+
+        static final String URL_MOVIEDB = "https://api.themoviedb.org/3/movie";
+        static final String PATH_POPULAR = "popular";
+        static final String PATH_TOP_RATED = "top_rated";
 
         @Override
         protected List<Movie> doInBackground(Void... params) {
@@ -63,8 +164,18 @@ public class MainActivity extends AppCompatActivity {
                 // Possible parameters are avaiable at OWM's forecast API page, at
                 // http://openweathermap.org/API#forecast
 
-                Uri builder = Uri.parse("https://api.themoviedb.org/3/movie/popular").buildUpon()
-                                 .appendQueryParameter("api_key", "f15f848efb98371d2beee477f0efeb9d").build();
+                Uri.Builder builder = Uri.parse(URL_MOVIEDB).buildUpon();
+                switch (mSortBy) {
+                    default:
+                        Log.w(TAG, "Invalid sort?");
+                    case SORT_POPULAR:
+                        builder.appendPath(PATH_POPULAR);
+                        break;
+                    case SORT_VOTED:
+                        builder.appendPath(PATH_TOP_RATED);
+                        break;
+                }
+                builder.appendQueryParameter(PARAM_API_KEY, BuildConfig.MOVIE_DB_API_KEY).build();
 
                 String urlString = builder.toString();
                 Log.d(TAG, urlString);
@@ -101,10 +212,8 @@ public class MainActivity extends AppCompatActivity {
 
                 return parseMovies(movieJsonStr);
             } catch (Exception e) {
-                Log.e("PlaceholderFragment", "Error ", e);
+                Log.e(TAG, "Error ", e);
                 e.printStackTrace();
-                // If the code didn't successfully get the weather data, there's no point in attemping
-                // to parse it.
                 return null;
             } finally {
                 if (urlConnection != null) {
@@ -114,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         reader.close();
                     } catch (final IOException e) {
-                        Log.e("PlaceholderFragment", "Error closing stream", e);
+                        Log.e(TAG, "Error closing stream", e);
                     }
                 }
             }
@@ -123,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<Movie> movies) {
             super.onPostExecute(movies);
-            if (movies != null) {
+            if (movies != null && !isCancelled()) {
                 gridView.setAdapter(new MovieAdapter(MainActivity.this, movies));
             }
         }
@@ -140,9 +249,6 @@ public class MainActivity extends AppCompatActivity {
 
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray moviesArray = moviesJson.getJSONArray(ATT_LIST);
-
-            //            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            //            String unit = preferences.getString(getString(R.string.pref_units_key), getString(R.string.pref_units_default));
 
             List<Movie> movies = new ArrayList<>();
 

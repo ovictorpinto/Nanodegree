@@ -19,6 +19,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            //http://softwareengineering.stackexchange.com/a/285309
+            buildConfigField("String", "MOVIE_DB_API_KEY", "\"" + MOVIE_DB_API_KEY + "\"")
+        }
+        debug {
+            //http://softwareengineering.stackexchange.com/a/285309
+            buildConfigField("String", "MOVIE_DB_API_KEY", "\"" + MOVIE_DB_API_KEY + "\"")
         }
     }
 }
