@@ -40,7 +40,7 @@ import java.util.ArrayList;
  */
 public class MainActivityFragment extends Fragment {
 
-    private ArrayAdapter<String> adapter;
+    private ForecastAdapter adapter;
 
     public MainActivityFragment() {
     }
@@ -89,7 +89,7 @@ public class MainActivityFragment extends Fragment {
         ListView listView = (ListView) rootView.findViewById(R.id.list_forecast);
 
         ArrayList<String> array = new ArrayList<>();
-        adapter = new ArrayAdapter<>(getActivity(), R.layout.item_forecast, R.id.textview, array);
+        adapter = new ForecastAdapter(getActivity(), R.layout.item_forecast, R.id.textview, array);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
