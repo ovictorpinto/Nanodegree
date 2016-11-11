@@ -11,15 +11,22 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import static com.example.android.sunshine.app.ForecastFragment.FORECASTFRAGMENT_TAG;
+
 public class MainActivity extends ActionBarActivity {
 
     static final String TAG = MainActivity.class.getSimpleName();
+
+    private String mLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_main);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mLocation = sharedPreferences.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
     }
 
     @Override
@@ -32,6 +39,13 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
+
+        final String newLocation = Utility.getPreferredLocation(this);
+        if (!mLocation.equalsIgnoreCase(newLocation)) {
+            ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentByTag(FORECASTFRAGMENT_TAG);
+            ff.onLocationChanged();
+            mLocation = newLocation;
+        }
     }
 
     @Override
@@ -81,7 +95,7 @@ public class MainActivity extends ActionBarActivity {
             intent.setData(uri);
             if (intent.resolveActivity(getPackageManager()) != null) {
                 startActivity(intent);
-            }else{
+            } else {
                 Toast.makeText(this, "Não existe aplicativo de mapa", Toast.LENGTH_SHORT).show();
             }
 
