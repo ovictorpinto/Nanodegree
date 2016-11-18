@@ -26,7 +26,6 @@ import com.example.android.sunshine.app.data.WeatherContract;
  */
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    public static final String FORECASTFRAGMENT_TAG = "ForecastFragment_TAG";
     private ForecastAdapter adapter;
     final int LOADER_ID = 100;
     public static final String[] FORECAST_COLUMNS = {

@@ -86,6 +86,9 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         textviewDateAmiga = (TextView) view.findViewById(R.id.textview_friendly);
         textviewDesc = (TextView) view.findViewById(R.id.textview_desc);
         imageView = (ImageView) view.findViewById(R.id.image);
+
+        textviewDesc.setText("Carregou!");
+        imageView.setImageResource(R.drawable.art_light_clouds);
         return view;
     }
 
@@ -119,6 +122,12 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Log.v(TAG, "In onCreateLoader");
+        Intent intent = getActivity().getIntent();
+        if (intent == null || intent.getData() == null) {
+            return null;
+        }
+
         return new CursorLoader(getActivity(), getActivity().getIntent().getData(), DETAIL_COLUMNS, null, null, null);
     }
 
