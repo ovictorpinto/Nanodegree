@@ -1,0 +1,7 @@
+<resources>
+
+    <style name="selectableForecast">
+        <item name="android:background">@drawable/touch_selector</item>
+    </style>
+
+</resources>

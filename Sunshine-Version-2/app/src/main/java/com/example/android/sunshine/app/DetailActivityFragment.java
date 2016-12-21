@@ -2,6 +2,7 @@ package com.example.android.sunshine.app;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -19,6 +20,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.example.android.sunshine.app.data.WeatherContract;
 
 import static com.example.android.sunshine.app.data.WeatherContract.LocationEntry;
 import static com.example.android.sunshine.app.data.WeatherContract.WeatherEntry;
@@ -64,8 +67,17 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     public static final int COL_WEATHER_WIND_SPEED = 7;
     public static final int COL_WEATHER_DEGREES = 8;
     public static final int COL_WEATHER_CONDITION_ID = 9;
+    private Uri mUri;
 
     public DetailActivityFragment() {
+    }
+
+    public static DetailActivityFragment getInstance(Uri mUri) {
+        DetailActivityFragment fragment = new DetailActivityFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("data", mUri);
+        fragment.setArguments(bundle);
+        return fragment;
     }
 
     @Override
@@ -76,6 +88,10 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (getArguments() != null && getArguments().containsKey("data")) {
+            mUri = getArguments().getParcelable("data");
+        }
+
         View view = inflater.inflate(R.layout.fragment_detail, container, false);
         textviewHumidade = (TextView) view.findViewById(R.id.textview_unimdade);
         textviewMax = (TextView) view.findViewById(R.id.textview_max);
@@ -89,6 +105,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
 
         textviewDesc.setText("Carregou!");
         imageView.setImageResource(R.drawable.art_light_clouds);
+
         return view;
     }
 
@@ -123,12 +140,11 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Log.v(TAG, "In onCreateLoader");
-        Intent intent = getActivity().getIntent();
-        if (intent == null || intent.getData() == null) {
+        if (mUri == null) {
             return null;
         }
 
-        return new CursorLoader(getActivity(), getActivity().getIntent().getData(), DETAIL_COLUMNS, null, null, null);
+        return new CursorLoader(getActivity(), mUri, DETAIL_COLUMNS, null, null, null);
     }
 
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -187,5 +203,16 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
+    }
+
+    void onLocationChanged(String newLocation) {
+        // replace the uri, since the location has changed
+        Uri uri = mUri;
+        if (uri != null) {
+            long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
+            Uri updatedUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(newLocation, date);
+            mUri = updatedUri;
+            getLoaderManager().restartLoader(LOADER_ID, null, this);
+        }
     }
 }

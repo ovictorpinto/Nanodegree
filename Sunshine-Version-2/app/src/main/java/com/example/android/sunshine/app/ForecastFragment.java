@@ -26,7 +26,20 @@ import com.example.android.sunshine.app.data.WeatherContract;
  */
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    private final String POSITION_CLICKED = "POSITION_CLICKED";
+    private ListView listView;
+
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Uri dateUri);
+    }
+
     private ForecastAdapter adapter;
+    private int positionClicked;
+    private boolean todaySpecial;
+
     final int LOADER_ID = 100;
     public static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -53,6 +66,13 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     static final int COL_COORD_LONG = 8;
 
     public ForecastFragment() {
+    }
+
+    public void setTodaySpecial(boolean todaySpecial) {
+        this.todaySpecial = todaySpecial;
+        if (adapter != null) {
+            adapter.setTodayIsEspecial(todaySpecial);
+        }
     }
 
     @Override
@@ -95,15 +115,15 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        ListView listView = (ListView) rootView.findViewById(R.id.list_forecast);
+        listView = (ListView) rootView.findViewById(R.id.list_forecast);
 
         adapter = new ForecastAdapter(getActivity(), null, 0);
-
+        adapter.setTodayIsEspecial(todaySpecial);
         listView.setAdapter(adapter);
         //        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
         //            @Override
-        //            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        //                String forecast = null;//adapter.getItem(position);
+        //            public void onItemClick(AdapterView<?> parent, View view, int POSITION_CLICKED, long id) {
+        //                String forecast = null;//adapter.getItem(POSITION_CLICKED);
         //                Toast.makeText(getActivity(), forecast, Toast.LENGTH_SHORT).show();
         //                Intent intent = new Intent(getActivity(), DetailActivity.class);
         //                intent.putExtra(Intent.EXTRA_TEXT, forecast);
@@ -114,17 +134,29 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
             @Override
             public void onItemClick(AdapterView adapterView, View view, int position, long l) {
-                // CursorAdapter returns a cursor at the correct position for getItem(), or null
-                // if it cannot seek to that position.
+                // CursorAdapter returns a cursor at the correct POSITION_CLICKED for getItem(), or null
+                // if it cannot seek to that POSITION_CLICKED.
+                positionClicked = position;
+                //antes já abria direto a activity
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if (cursor != null) {
                     String locationSetting = Utility.getPreferredLocation(getActivity());
-                    Intent intent = new Intent(getActivity(), DetailActivity.class).setData(WeatherContract.WeatherEntry
-                            .buildWeatherLocationWithDate(locationSetting, cursor.getLong(COL_WEATHER_DATE)));
-                    startActivity(intent);
+                    //                    Intent intent = new Intent(getActivity(), DetailActivity.class).setData(WeatherContract
+                    // .WeatherEntry
+                    //                            .buildWeatherLocationWithDate(locationSetting, cursor.getLong(COL_WEATHER_DATE)));
+                    //                    startActivity(intent);
+
+                    final Uri uri = WeatherContract.WeatherEntry
+                            .buildWeatherLocationWithDate(locationSetting, cursor.getLong(COL_WEATHER_DATE));
+                    ((Callback) getActivity()).onItemSelected(uri);
                 }
+
             }
         });
+
+        if (savedInstanceState != null) {
+            positionClicked = savedInstanceState.getInt(POSITION_CLICKED, 0);
+        }
         return rootView;
     }
 
@@ -149,6 +181,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         adapter.swapCursor(data);
+        listView.smoothScrollToPosition(positionClicked);
+
     }
 
     @Override
@@ -159,5 +193,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     public void onLocationChanged() {
         refreshWeather();
         getLoaderManager().restartLoader(LOADER_ID, null, this);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(POSITION_CLICKED, positionClicked);
     }
 }

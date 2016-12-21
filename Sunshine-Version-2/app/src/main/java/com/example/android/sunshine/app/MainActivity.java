@@ -11,7 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements ForecastFragment.Callback {
 
     static final String TAG = MainActivity.class.getSimpleName();
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
@@ -35,10 +35,26 @@ public class MainActivity extends ActionBarActivity {
             // fragment transaction.
             if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
-                                           .replace(R.id.weather_detail_container, new DetailActivityFragment(), DETAILFRAGMENT_TAG).commit();
+                                           .replace(R.id.weather_detail_container, new DetailActivityFragment(), DETAILFRAGMENT_TAG)
+                                           .commit();
             }
         } else {
             mTwoPane = false;
+            getSupportActionBar().setElevation(0f);
+        }
+
+        ForecastFragment forecastFragment = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
+        forecastFragment.setTodaySpecial(!mTwoPane);
+    }
+
+    @Override
+    public void onItemSelected(Uri dateUri) {
+        if (mTwoPane) {
+            final DetailActivityFragment fragment = DetailActivityFragment.getInstance(dateUri);
+            getSupportFragmentManager().beginTransaction().replace(R.id.weather_detail_container, fragment).commit();
+        } else {
+            Intent intent = new Intent(this, DetailActivity.class).setData(dateUri);
+            startActivity(intent);
         }
     }
 
@@ -56,7 +72,13 @@ public class MainActivity extends ActionBarActivity {
         final String newLocation = Utility.getPreferredLocation(this);
         if (mLocation != null && !mLocation.equalsIgnoreCase(newLocation)) {
             ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
-            ff.onLocationChanged();
+            if (ff != null) {
+                ff.onLocationChanged();
+            }
+            DetailActivityFragment df = (DetailActivityFragment) getSupportFragmentManager().findFragmentByTag(DETAILFRAGMENT_TAG);
+            if (null != df) {
+                df.onLocationChanged(newLocation);
+            }
             mLocation = newLocation;
         }
     }

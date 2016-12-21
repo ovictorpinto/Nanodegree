@@ -19,6 +19,7 @@ public class ForecastAdapter extends CursorAdapter {
 
     private final int TODAY = 0;
     private final int OTHER = 1;
+    private boolean todayIsEspecial = false;
 
     public ForecastAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
@@ -52,7 +53,8 @@ public class ForecastAdapter extends CursorAdapter {
      */
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        final int layout = getItemViewType(cursor.getPosition()) == TODAY ? R.layout.list_item_forecast_today : R.layout.list_item_forecast;
+        final int viewType = getItemViewType(cursor.getPosition());
+        final int layout = viewType == TODAY ? R.layout.list_item_forecast_today : R.layout.list_item_forecast;
         View view = LayoutInflater.from(context).inflate(layout, parent, false);
         ViewHolder vh = new ViewHolder(view);
         view.setTag(vh);
@@ -66,12 +68,16 @@ public class ForecastAdapter extends CursorAdapter {
 
     @Override
     public int getItemViewType(int position) {
-        return position == 0 ? TODAY : OTHER;
+        return (position == 0 && todayIsEspecial) ? TODAY : OTHER;
+    }
+
+    public void setTodayIsEspecial(boolean todayIsEspecial) {
+        this.todayIsEspecial = todayIsEspecial;
     }
 
     /*
-                This is where we fill-in the views with the contents of the cursor.
-             */
+                    This is where we fill-in the views with the contents of the cursor.
+                 */
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         // our view is pretty simple here --- just a text view
@@ -82,7 +88,7 @@ public class ForecastAdapter extends CursorAdapter {
         int weatherId = cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID);
         // Use placeholder image for now
         ImageView iconView = holder.iconView;
-        if (cursor.getPosition() == 0) {
+        if (getItemViewType(cursor.getPosition()) == TODAY) {
             iconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
         } else {
             iconView.setImageResource(Utility.getIconResourceForWeatherCondition(weatherId));

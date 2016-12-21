@@ -2,8 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:context="com.example.android.sunshine.app.DetailActivityFragment">
+            android:layout_height="wrap_content">
     <LinearLayout
         android:id="@+id/activity_detail"
         android:layout_width="match_parent"
@@ -17,19 +16,28 @@
             android:id="@+id/textview_friendly"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:text="Forecast"/>
+            android:textSize="22sp"
+            tools:text="Today"/>
+
         <TextView
             android:id="@+id/textview_day"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:text="Forecast"/>
+            android:textColor="#646464"
+            android:textSize="16sp"
+            tools:text="June 18"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal"
+            android:paddingLeft="8dp">
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
                 android:layout_weight="1"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
@@ -37,30 +45,34 @@
                     android:id="@+id/textview_max"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textSize="96sp"
                     tools:text="21º"/>
                 <TextView
                     android:id="@+id/textview_min"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textColor="#646464"
+                    android:textSize="48sp"
                     tools:text="7º"/>
             </LinearLayout>
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:orientation="vertical">
                 <ImageView
                     android:id="@+id/image"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@mipmap/ic_launcher"
+                    android:src="@drawable/art_clear"
                     tools:text="21º"/>
                 <TextView
                     android:id="@+id/textview_desc"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal"
+                    android:textSize="22sp"
                     tools:text="Clear"/>
             </LinearLayout>
         </LinearLayout>
@@ -73,11 +85,13 @@
             android:id="@+id/textview_vento"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             tools:text="Wind: 6km/h WE"/>
         <TextView
             android:id="@+id/textview_pressao"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             tools:text="Pressure: 1024 hPA"/>
 
     </LinearLayout>
