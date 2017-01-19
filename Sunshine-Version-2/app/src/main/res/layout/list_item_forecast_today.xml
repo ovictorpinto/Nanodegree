@@ -43,10 +43,6 @@
             android:textSize="36sp"
             tools:text="15º"/>
 
-        <com.example.android.sunshine.app.MyView
-            android:background="@android:color/holo_purple"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <LinearLayout

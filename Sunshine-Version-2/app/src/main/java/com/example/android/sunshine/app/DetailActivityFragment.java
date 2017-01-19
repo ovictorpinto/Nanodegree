@@ -1,5 +1,6 @@
 package com.example.android.sunshine.app;
 
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -18,6 +19,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -47,6 +50,7 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
     private ImageView imageView;
     private String mForecast;
     private ShareActionProvider mShareActionProvider;
+    private MyView myView;
 
     private static final String[] DETAIL_COLUMNS = {WeatherEntry.TABLE_NAME + "." + WeatherEntry._ID, WeatherEntry.COLUMN_DATE,
             WeatherEntry.COLUMN_SHORT_DESC, WeatherEntry.COLUMN_MAX_TEMP, WeatherEntry.COLUMN_MIN_TEMP, WeatherEntry.COLUMN_HUMIDITY,
@@ -102,6 +106,8 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
         textviewDateAmiga = (TextView) view.findViewById(R.id.textview_friendly);
         textviewDesc = (TextView) view.findViewById(R.id.textview_desc);
         imageView = (ImageView) view.findViewById(R.id.image);
+
+        myView = (MyView) view.findViewById(R.id.myview);
 
         textviewDesc.setText("Carregou!");
         imageView.setImageResource(R.drawable.art_light_clouds);
@@ -196,6 +202,19 @@ public class DetailActivityFragment extends Fragment implements LoaderManager.Lo
             // If onCreateOptionsMenu has already happened, we need to update the share intent now.
             if (mShareActionProvider != null) {
                 mShareActionProvider.setShareIntent(createShareForecastIntent());
+            }
+
+            myView.setDirecao(Utility.getFormattedWind(getActivity(), windSpeedStr, windDirStr));
+
+            AccessibilityManager accessibilityManager = (AccessibilityManager) getActivity()
+                    .getSystemService(Context.ACCESSIBILITY_SERVICE);
+            if (accessibilityManager.isEnabled()) {
+                final AccessibilityEvent event = AccessibilityEvent.obtain(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+                event.getText().add("Mudou alguma coisa aqui no meio");
+                // Sends the event directly through the accessibility manager. If your
+                // application only targets SDK 14+, you should just call
+                // getParent().requestSendAccessibilityEvent(this, event);
+                accessibilityManager.sendAccessibilityEvent(event);
             }
         }
     }
