@@ -6,6 +6,7 @@
 
 package com.github.ovictorpinto.backend;
 
+import com.github.ovictorpinto.facaomaior.jokelib.JokeGenerator;
 import com.google.api.server.spi.config.Api;
 import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
@@ -13,29 +14,26 @@ import com.google.api.server.spi.config.ApiNamespace;
 import javax.inject.Named;
 
 /** An endpoint class we are exposing */
-@Api(
-        name = "myApi",
-        version = "v1",
-        namespace = @ApiNamespace(
-                ownerDomain = "backend.ovictorpinto.github.com",
-                ownerName = "backend.ovictorpinto.github.com",
-                packagePath = ""))
+@Api(name = "myApi", version = "v1", namespace = @ApiNamespace(ownerDomain = "backend.ovictorpinto.github.com", ownerName = "backend" +
+        ".ovictorpinto.github.com", packagePath = ""))
 public class MyEndpoint {
-
+    
     /** A simple endpoint method that takes a name and says Hi back */
     @ApiMethod(name = "sayHi")
     public MyBean sayHi(@Named("name") String name) {
         MyBean response = new MyBean();
         response.setData("Hi, " + name);
-
+        
         return response;
     }
-
+    
     @ApiMethod(name = "generate")
     public Joke generate() {
+        
+        JokeGenerator jokeGenerator = new JokeGenerator();
         Joke joke = new Joke();
-        joke.setDescription("O povo brasileiro é um grande palhaço");
+        joke.setDescription(jokeGenerator.newJoke());
         return joke;
     }
-
+    
 }
