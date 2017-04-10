@@ -15,6 +15,7 @@ import android.support.v4.app.ShareCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.graphics.Palette;
 import android.text.Html;
+import android.text.Spanned;
 import android.text.format.DateUtils;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -119,7 +120,7 @@ public class ArticleDetailFragment extends Fragment implements LoaderManager.Loa
                 updateStatusBar();
             }
         });
-    
+        
         mPhotoView = (ImageView) mRootView.findViewById(R.id.photo);
         mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
         
@@ -187,8 +188,17 @@ public class ArticleDetailFragment extends Fragment implements LoaderManager.Loa
                     .currentTimeMillis(), DateUtils.HOUR_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL)
                                                       .toString() + " by <font color='#ffffff'>" + mCursor
                     .getString(ArticleLoader.Query.AUTHOR) + "</font>"));
-            bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY)));
-    
+            
+            String html = mCursor.getString(ArticleLoader.Query.BODY);
+            Spanned spanned;
+            
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                spanned = Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY);
+            } else {
+                spanned = Html.fromHtml(html);
+            }
+            bodyView.setText(spanned);
+            
             String transitionName = getString(R.string.transition_photo) + mCursor.getString(ArticleLoader.Query._ID);
             ViewCompat.setTransitionName(mPhotoView, transitionName);
             
