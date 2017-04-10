@@ -12,6 +12,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.ShareCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.graphics.Palette;
 import android.text.Html;
 import android.text.format.DateUtils;
@@ -118,12 +119,8 @@ public class ArticleDetailFragment extends Fragment implements LoaderManager.Loa
                 updateStatusBar();
             }
         });
-        
+    
         mPhotoView = (ImageView) mRootView.findViewById(R.id.photo);
-        String transitionName = getString(R.string.transition_photo) + getActivity().getIntent().getIntExtra("pos", 0);
-        Log.d("Detalhe", transitionName);
-        
-        mPhotoView.setTransitionName(transitionName);
         mPhotoContainerView = mRootView.findViewById(R.id.photo_container);
         
         mStatusBarColorDrawable = new ColorDrawable(0);
@@ -179,6 +176,9 @@ public class ArticleDetailFragment extends Fragment implements LoaderManager.Loa
         bodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
         
         if (mCursor != null) {
+            
+            getActivityCast().scheduleStartPostponedTransition(mPhotoView);
+            
             mRootView.setAlpha(0);
             mRootView.setVisibility(View.VISIBLE);
             mRootView.animate().alpha(1);
@@ -188,6 +188,10 @@ public class ArticleDetailFragment extends Fragment implements LoaderManager.Loa
                                                       .toString() + " by <font color='#ffffff'>" + mCursor
                     .getString(ArticleLoader.Query.AUTHOR) + "</font>"));
             bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY)));
+    
+            String transitionName = getString(R.string.transition_photo) + mCursor.getString(ArticleLoader.Query._ID);
+            ViewCompat.setTransitionName(mPhotoView, transitionName);
+            
             ImageLoaderHelper.getInstance(getActivity()).getImageLoader()
                              .get(mCursor.getString(ArticleLoader.Query.PHOTO_URL), new ImageLoader.ImageListener() {
                                  @Override

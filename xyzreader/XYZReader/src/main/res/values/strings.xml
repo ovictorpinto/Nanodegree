@@ -36,5 +36,8 @@
         ]]>
     </string>
     <string name="transition_photo">transitionPhoto</string>
+    <string name="banner">Banner</string>
+    <string name="offline">Offline</string>
+    <string name="retry">Tentar novamente</string>
 
 </resources>

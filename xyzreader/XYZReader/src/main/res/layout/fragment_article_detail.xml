@@ -29,14 +29,9 @@
                         android:id="@+id/photo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:adjustViewBounds="true"
-                        android:scaleType="centerInside"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="@string/banner"
                         tools:src="@drawable/audi"/>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="112dp"
-                        android:background="@drawable/photo_background_protection"/>
 
                 </FrameLayout>
 
@@ -95,7 +90,7 @@
                         android:lineSpacingMultiplier="@fraction/detail_body_line_spacing_multiplier"
                         android:paddingBottom="@dimen/detail_body_bottom_margin"
                         android:text="@string/sample_body"
-                        android:textColorLink="@color/theme_accent"/>
+                        android:textColorLink="@color/theme_primary_dark"/>
 
                 </com.example.xyzreader.ui.MaxWidthLinearLayout>
             </FrameLayout>

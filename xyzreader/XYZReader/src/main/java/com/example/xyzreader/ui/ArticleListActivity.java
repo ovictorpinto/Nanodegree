@@ -1,6 +1,5 @@
 package com.example.xyzreader.ui;
 
-import android.app.ActivityOptions;
 import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -8,8 +7,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.RecyclerView;
@@ -37,6 +41,8 @@ public class ArticleListActivity extends ActionBarActivity implements LoaderMana
     private Toolbar mToolbar;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
+    private BroadcastReceiver onConnectReceiver;
+    private Snackbar snack;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +63,30 @@ public class ArticleListActivity extends ActionBarActivity implements LoaderMana
         }
     }
     
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        NetworkInfo ni = cm.getActiveNetworkInfo();
+        if (ni == null || !ni.isConnected()) {
+            return false;
+        }
+        return true;
+    }
+    
     private void refresh() {
-        startService(new Intent(this, UpdaterService.class));
+        if (!isOnline()) {
+            snack = Snackbar.make(findViewById(R.id.main_layout), R.string.offline, Snackbar.LENGTH_INDEFINITE)
+                            .setAction(R.string.retry, new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    refresh();
+                                }
+                            });
+            snack.show();
+            waitConnection();
+        } else {
+            startService(new Intent(this, UpdaterService.class));
+        }
+        
     }
     
     @Override
@@ -130,10 +158,11 @@ public class ArticleListActivity extends ActionBarActivity implements LoaderMana
                 @Override
                 public void onClick(View view) {
                     int position = vh.getAdapterPosition();
-                    String transitionName = vh.thumbnailView.getTransitionName();
-                    Log.d("Clicado", transitionName);
-                    Bundle bundle = ActivityOptions.makeSceneTransitionAnimation(ArticleListActivity.this, vh.thumbnailView, transitionName)
-                                                   .toBundle();
+                    
+                    String transitionName = ViewCompat.getTransitionName(vh.thumbnailView);
+                    Log.d("adapter", transitionName);
+                    Bundle bundle = ActivityOptionsCompat
+                            .makeSceneTransitionAnimation(ArticleListActivity.this, vh.thumbnailView, transitionName).toBundle();
                     Uri uri = ItemsContract.Items.buildItemUri(getItemId(position));
                     Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                     intent.putExtra("pos", position);
@@ -146,13 +175,13 @@ public class ArticleListActivity extends ActionBarActivity implements LoaderMana
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
             mCursor.moveToPosition(position);
+            ViewCompat.setTransitionName(holder.thumbnailView, getString(R.string.transition_photo) + mCursor
+                    .getString(ArticleLoader.Query._ID));
             holder.titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
             holder.subtitleView.setText(DateUtils.getRelativeTimeSpanString(mCursor.getLong(ArticleLoader.Query.PUBLISHED_DATE), System
                     .currentTimeMillis(), DateUtils.HOUR_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL).toString() + " by " + mCursor
                     .getString(ArticleLoader.Query.AUTHOR));
-            String transitionName = getString(R.string.transition_photo) + position;
-            Log.d("Adapter", transitionName);
-            holder.thumbnailView.setTransitionName(transitionName);
+            
             holder.thumbnailView
                     .setImageUrl(mCursor.getString(ArticleLoader.Query.THUMB_URL), ImageLoaderHelper.getInstance(ArticleListActivity.this)
                                                                                                     .getImageLoader());
@@ -172,9 +201,38 @@ public class ArticleListActivity extends ActionBarActivity implements LoaderMana
         
         public ViewHolder(View view) {
             super(view);
+            
             thumbnailView = (DynamicHeightNetworkImageView) view.findViewById(R.id.thumbnail);
             titleView = (TextView) view.findViewById(R.id.article_title);
             subtitleView = (TextView) view.findViewById(R.id.article_subtitle);
+        }
+        
+    }
+    
+    private void waitConnection() {
+        if (onConnectReceiver == null) {
+            onConnectReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (isOnline()) {
+                        refresh();
+                        unregisterReceiver(onConnectReceiver);
+                        onConnectReceiver = null;
+                        if (snack.isShown()) {
+                            snack.dismiss();
+                        }
+                    }
+                }
+            };
+            registerReceiver(onConnectReceiver, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
+        }
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (onConnectReceiver != null) {
+            unregisterReceiver(onConnectReceiver);
         }
     }
 }
