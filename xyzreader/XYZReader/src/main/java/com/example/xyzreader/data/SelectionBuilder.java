@@ -84,12 +84,6 @@ public class SelectionBuilder {
         }
     }
 
-    private void ensureProjectionMap() {
-		if (mProjectionMap == null) {
-			mProjectionMap = new HashMap<>();
-		}
-    }
-
     private void ensureSelection(int lengthHint) {
     	if (mSelection == null) {
     		mSelection = new StringBuilder(lengthHint + 8);

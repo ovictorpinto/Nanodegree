@@ -184,13 +184,19 @@ public class ArticleDetailFragment extends Fragment implements LoaderManager.Loa
             mRootView.setVisibility(View.VISIBLE);
             mRootView.animate().alpha(1);
             titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
-            bylineView.setText(Html.fromHtml(DateUtils.getRelativeTimeSpanString(mCursor.getLong(ArticleLoader.Query.PUBLISHED_DATE), System
+            String source = DateUtils.getRelativeTimeSpanString(mCursor.getLong(ArticleLoader.Query.PUBLISHED_DATE), System
                     .currentTimeMillis(), DateUtils.HOUR_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL)
-                                                      .toString() + " by <font color='#ffffff'>" + mCursor
-                    .getString(ArticleLoader.Query.AUTHOR) + "</font>"));
+                                     .toString() + " by <font color='#ffffff'>" + mCursor.getString(ArticleLoader.Query.AUTHOR) + "</font>";
+            
+            Spanned spanned;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                spanned = Html.fromHtml(source, Html.FROM_HTML_MODE_LEGACY);
+            } else {
+                spanned = Html.fromHtml(source);
+            }
+            bylineView.setText(spanned);
             
             String html = mCursor.getString(ArticleLoader.Query.BODY);
-            Spanned spanned;
             
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                 spanned = Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY);
