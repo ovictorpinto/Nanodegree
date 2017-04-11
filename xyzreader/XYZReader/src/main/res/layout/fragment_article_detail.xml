@@ -29,8 +29,8 @@
                         android:id="@+id/photo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:scaleType="centerCrop"
                         android:contentDescription="@string/banner"
+                        android:scaleType="centerCrop"
                         tools:src="@drawable/audi"/>
 
                 </FrameLayout>
@@ -98,14 +98,15 @@
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/share_fab"
-            app:layout_scrollFlags="scroll"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
             android:contentDescription="@string/action_share"
+            android:elevation="@dimen/elevationFab"
             android:src="@drawable/ic_share"
-            app:fabSize="normal"/>
+            app:fabSize="normal"
+            app:layout_scrollFlags="scroll"/>
 
     </com.example.xyzreader.ui.DrawInsetsFrameLayout>
 </android.support.design.widget.CoordinatorLayout>

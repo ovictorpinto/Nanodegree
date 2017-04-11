@@ -165,6 +165,7 @@ public class ArticleDetailFragment extends Fragment implements LoaderManager.Loa
         }
     }
     
+    @SuppressWarnings("deprecation")
     private void bindViews() {
         if (mRootView == null) {
             return;
