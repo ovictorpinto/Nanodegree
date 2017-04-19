@@ -9,5 +9,12 @@
 
     <string name="offline">Offline</string>
     <string name="retry">Retry</string>
+    <string name="failed_get_videos">Não foi possível buscar os vídeos</string>
+    <string name="failed_get_reviews">Não foi possível buscar os reviews</string>
+    <string name="videos">Vídeos</string>
+    <string name="reviews">Reviews</string>
+    <string name="failed_get_details">Não foi possível buscar os detalhes</string>
+
+    <string name="time_">%dm</string>
 
 </resources>

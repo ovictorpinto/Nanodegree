@@ -2,6 +2,7 @@ package com.github.ovictorpinto.popularmovies;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v4.view.ViewCompat;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -32,6 +33,8 @@ public class MovieAdapter extends ArrayAdapter<Movie> {
         Movie movie = getItem(position);
 
         ImageView imageview = (ImageView) convertView.findViewById(R.id.imageview);
+    
+        ViewCompat.setTransitionName(imageview, "trans" + movie.getId());
         Picasso.with(getContext()).load(movie.getFullPath()).into(imageview);
 
         return convertView;

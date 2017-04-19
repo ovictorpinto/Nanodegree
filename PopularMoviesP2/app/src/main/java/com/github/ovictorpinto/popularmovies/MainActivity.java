@@ -11,6 +11,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -38,44 +41,50 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-
+    
     public static final String PARAM_API_KEY = "api_key";
     private GridView gridView;
     private static final String TAG = MainActivity.class.getSimpleName();
-
+    
     private static final int SORT_POPULAR = 0;
     private static final int SORT_VOTED = 1;
-
+    
     private SharedPreferences mSharedPreferences;
     private int mSortBy;
     private LoadMovies mLoadMovies;
     private View mMainView;
-
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
+        
         mSortBy = mSharedPreferences.getInt(getString(R.string.pref_sort), SORT_POPULAR);
-
+        
         setContentView(R.layout.activity_main);
-
+        
         mMainView = findViewById(R.id.activity_main);
-
+        
         gridView = (GridView) findViewById(R.id.gridview);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Movie selected = (Movie) parent.getAdapter().getItem(position);
+                
+                View imageClicked = view.findViewById(R.id.imageview);
+                String transitionName = ViewCompat.getTransitionName(imageClicked);
+                Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(MainActivity.this, imageClicked, transitionName)
+                                                     .toBundle();
+                
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class).putExtra(Movie.PARAM, selected);
-                startActivity(intent);
+                ContextCompat.startActivity(MainActivity.this, intent, bundle);
             }
         });
-
+        
         refresh();
     }
-
+    
     private void refresh() {
         if (isOnline()) {
             if (mLoadMovies != null) {
@@ -93,14 +102,14 @@ public class MainActivity extends AppCompatActivity {
             Snackbar.make(mMainView, R.string.offline, Snackbar.LENGTH_INDEFINITE).setAction(R.string.retry, listener).show();
         }
     }
-
+    
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.menu_sort, menu);
         return true;
     }
-
+    
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -108,11 +117,11 @@ public class MainActivity extends AppCompatActivity {
             mLoadMovies.cancel(true);
         }
     }
-
+    
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_sort) {
-
+            
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
                 @Override
@@ -132,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
+    
     /**
      * Verify is device has connection
      * @return true if has a networking connection
@@ -142,28 +151,28 @@ public class MainActivity extends AppCompatActivity {
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
-
+    
     /**
      * Task load movies from api themoviedb.
      */
     class LoadMovies extends AsyncTask<Void, Void, List<Movie>> {
-
+        
         static final String URL_MOVIEDB = "https://api.themoviedb.org/3/movie";
         static final String PATH_POPULAR = "popular";
         static final String PATH_TOP_RATED = "top_rated";
-
+        
         @Override
         protected List<Movie> doInBackground(Void... params) {
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
-
+            
             try {
                 // Construct the URL for the OpenWeatherMap query
                 // Possible parameters are avaiable at OWM's forecast API page, at
                 // http://openweathermap.org/API#forecast
-
+                
                 Uri.Builder builder = Uri.parse(URL_MOVIEDB).buildUpon();
                 switch (mSortBy) {
                     default:
@@ -176,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
                 builder.appendQueryParameter(PARAM_API_KEY, BuildConfig.MOVIE_DB_API_KEY).build();
-
+                
                 String urlString = builder.toString();
                 Log.d(TAG, urlString);
                 URL url = new URL(urlString);
@@ -184,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
-
+                
                 // Read the input stream into a String
                 InputStream inputStream = urlConnection.getInputStream();
                 StringBuffer buffer = new StringBuffer();
@@ -193,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                     return null;
                 }
                 reader = new BufferedReader(new InputStreamReader(inputStream));
-
+                
                 String line;
                 while ((line = reader.readLine()) != null) {
                     // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
@@ -201,15 +210,15 @@ public class MainActivity extends AppCompatActivity {
                     // buffer for debugging.
                     buffer.append(line + "\n");
                 }
-
+                
                 if (buffer.length() == 0) {
                     // Stream was empty.  No point in parsing.
                     return null;
                 }
-
+                
                 String movieJsonStr = buffer.toString();
                 Log.d(TAG, movieJsonStr);
-
+                
                 return parseMovies(movieJsonStr);
             } catch (Exception e) {
                 Log.e(TAG, "Error ", e);
@@ -228,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-
+        
         @Override
         protected void onPostExecute(List<Movie> movies) {
             super.onPostExecute(movies);
@@ -236,9 +245,9 @@ public class MainActivity extends AppCompatActivity {
                 gridView.setAdapter(new MovieAdapter(MainActivity.this, movies));
             }
         }
-
+        
         private List<Movie> parseMovies(String moviesJsonStr) throws JSONException {
-
+            
             // These are the names of the JSON objects that need to be extracted.
             final String ATT_LIST = "results";
             final String ATT_PATH = "poster_path";
@@ -246,23 +255,25 @@ public class MainActivity extends AppCompatActivity {
             final String ATT_TITLE = "title";
             final String ATT_VOTE = "vote_average";
             final String ATT_DATE = "release_date";
-
+            final String ATT_ID = "id";
+            
             JSONObject moviesJson = new JSONObject(moviesJsonStr);
             JSONArray moviesArray = moviesJson.getJSONArray(ATT_LIST);
-
+            
             List<Movie> movies = new ArrayList<>();
-
+            
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
+            
             for (int i = 0; i < moviesArray.length(); i++) {
-
+                
                 JSONObject movieJson = moviesArray.getJSONObject(i);
-
+                
                 Movie movie = new Movie();
+                movie.setId(movieJson.getInt(ATT_ID));
                 movie.setOverview(movieJson.getString(ATT_OVERVIEW));
                 movie.setPosterPath(movieJson.getString(ATT_PATH));
                 movie.setTitle(movieJson.getString(ATT_TITLE));
-
+                
                 if (!movieJson.isNull(ATT_DATE)) {
                     try {
                         movie.setRelease(simpleDateFormat.parse(movieJson.getString(ATT_DATE)));
@@ -270,13 +281,13 @@ public class MainActivity extends AppCompatActivity {
                         Log.w(TAG, "Wrong release date?");
                     }
                 }
-
-                movie.setVoteAverage((float) movieJson.getDouble(ATT_VOTE));
+                
+                movie.setVote_average((float) movieJson.getDouble(ATT_VOTE));
                 movies.add(movie);
             }
-
+            
             return movies;
-
+            
         }
     }
 }
