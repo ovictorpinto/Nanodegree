@@ -3,6 +3,7 @@
     <array name="sort_movies">
         <item>@string/label_most_popular</item>
         <item>@string/label_highest_voted</item>
+        <item>@string/label_favorite</item>
     </array>
 
     <string name="pref_sort" translatable="false">prefSorteMovie</string>

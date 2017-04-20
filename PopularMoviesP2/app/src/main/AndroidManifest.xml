@@ -26,6 +26,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.github.ovictorpinto.popularmovies.MainActivity"/>
         </activity>
+
+        <provider
+            android:name=".data.FavoriteProvider"
+            android:authorities="com.github.ovictorpinto.popularmovies"
+            android:exported="true"/>
+
     </application>
 
 </manifest>

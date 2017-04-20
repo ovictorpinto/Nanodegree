@@ -1,20 +1,27 @@
 <resources>
-    <string name="app_name">Popular Movies</string>
+    <string name="app_name">Popular Movies P2</string>
     <string name="title_activity_detail">Movie detail</string>
     <string name="action_settings">Settings</string>
     <string name="sort">Sort</string>
 
     <string name="label_most_popular">Most popular</string>
     <string name="label_highest_voted">Top rated</string>
+    <string name="label_favorite">Favorites</string>
 
     <string name="offline">Offline</string>
     <string name="retry">Retry</string>
-    <string name="failed_get_videos">Não foi possível buscar os vídeos</string>
-    <string name="failed_get_reviews">Não foi possível buscar os reviews</string>
-    <string name="videos">Vídeos</string>
+    <string name="failed_get_videos">Cant get vídeos</string>
+    <string name="failed_get_reviews">Cant get reviews</string>
+    <string name="videos">Videos</string>
     <string name="reviews">Reviews</string>
-    <string name="failed_get_details">Não foi possível buscar os detalhes</string>
+    <string name="failed_get_details">Cant get details</string>
 
     <string name="time_">%dm</string>
+    <string name="no_items_found">No items found</string>
+    <string name="add_favorites">Add to favorites</string>
+    <string name="remove_favorites">Remove from favorites</string>
+    <string name="added">Added</string>
+    <string name="removed">Removed</string>
+    <string name="pick_a_movie">Pick a movie</string>
 
 </resources>

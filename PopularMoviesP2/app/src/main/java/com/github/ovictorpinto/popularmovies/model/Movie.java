@@ -3,6 +3,8 @@ package com.github.ovictorpinto.popularmovies.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Date;
 
 /**
@@ -12,15 +14,19 @@ import java.util.Date;
 public class Movie implements Parcelable {
     
     public static final String PARAM = "movieParam";
+    public static final String PARAM_ID = "idMovieParam";
     public static final String URL_PREFIX = "http://image.tmdb.org/t/p/w185";
     
     protected int id;
+    @JsonProperty(value = "poster_path")
     protected String posterPath;
     protected String overview;
     protected String title;
+    @JsonProperty(value = "release_date")
     protected Date release;
     protected Float vote_average;
     protected int runtime;
+    protected boolean isFavorito;
     
     public Movie() {
     }
@@ -40,6 +46,7 @@ public class Movie implements Parcelable {
         vote_average = (Float) in.readSerializable();
         id = in.readInt();
         runtime = in.readInt();
+        isFavorito = in.readInt() > 0;
     }
     
     @Override
@@ -51,6 +58,7 @@ public class Movie implements Parcelable {
         dest.writeSerializable(vote_average);
         dest.writeInt(id);
         dest.writeInt(runtime);
+        dest.writeInt(isFavorito ? 1 : 0);
     }
     
     @Override
@@ -124,5 +132,13 @@ public class Movie implements Parcelable {
     
     public void setRuntime(int runtime) {
         this.runtime = runtime;
+    }
+    
+    public boolean isFavorito() {
+        return isFavorito;
+    }
+    
+    public void setFavorito(boolean favorito) {
+        isFavorito = favorito;
     }
 }

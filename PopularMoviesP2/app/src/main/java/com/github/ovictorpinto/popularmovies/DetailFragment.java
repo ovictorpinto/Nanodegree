@@ -1,6 +1,7 @@
 package com.github.ovictorpinto.popularmovies;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.ovictorpinto.popularmovies.data.Contract;
 import com.github.ovictorpinto.popularmovies.model.Movie;
 import com.github.ovictorpinto.popularmovies.model.MovieDBResult;
 import com.github.ovictorpinto.popularmovies.model.Review;
@@ -34,16 +36,17 @@ import retrofit2.http.Query;
  * Exemplo; https://api.themoviedb.org/3/movie/popular?api_key=
  * Exemplo; https://api.themoviedb.org/3/movie/321612/videos?api_key=
  */
-public class DetailActivityFragment extends Fragment {
+public class DetailFragment extends Fragment {
     
     private MovieDBService service;
     private Movie movie;
+    private int idMovie;
     private List<Review> reviews;
     private List<Video> videos;
     private RecyclerView recyclerView;
     private View progress;
     
-    public DetailActivityFragment() {
+    public DetailFragment() {
     }
     
     @Override
@@ -53,7 +56,11 @@ public class DetailActivityFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
         
         progress = mainView.findViewById(R.id.progress);
-        movie = getActivity().getIntent().getParcelableExtra(Movie.PARAM);
+        if (getArguments() != null) {
+            idMovie = getArguments().getInt(Movie.PARAM_ID, 0);
+        } else {
+            idMovie = getActivity().getIntent().getIntExtra(Movie.PARAM_ID, 0);
+        }
         
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -71,13 +78,12 @@ public class DetailActivityFragment extends Fragment {
     
     //chamada só pra atualizar o runtime do filme
     private void callDetail() {
-        Call<Movie> call = service.getDetails(movie.getId(), BuildConfig.MOVIE_DB_API_KEY);
+        Call<Movie> call = service.getDetails(idMovie, BuildConfig.MOVIE_DB_API_KEY);
         call.enqueue(new Callback<Movie>() {
             @Override
             public void onResponse(Call<Movie> call, Response<Movie> response) {
                 if (response.isSuccessful()) {
-                    Movie result = response.body();
-                    movie.setRuntime(result.getRuntime());
+                    movie = response.body();
                 } else {
                     System.out.println(response.errorBody());
                 }
@@ -94,7 +100,13 @@ public class DetailActivityFragment extends Fragment {
     }
     
     private void callReviews() {
-        Call<MovieDBResult<Review>> call = service.listReviews(movie.getId(), BuildConfig.MOVIE_DB_API_KEY);
+        //verifico se é um favorito depois de buscar os detalhes
+        if (movie != null && getActivity() != null) {
+            Cursor cursor = getActivity().getContentResolver().query(Contract.Favorite
+                    .makeUriForMovie(idMovie), Contract.Favorite.FAVORITE_COLUMNS, null, null, null);
+            movie.setFavorito(cursor != null && cursor.moveToFirst());
+        }
+        Call<MovieDBResult<Review>> call = service.listReviews(idMovie, BuildConfig.MOVIE_DB_API_KEY);
         call.enqueue(new Callback<MovieDBResult<Review>>() {
             @Override
             public void onResponse(Call<MovieDBResult<Review>> call, Response<MovieDBResult<Review>> response) {
@@ -117,7 +129,7 @@ public class DetailActivityFragment extends Fragment {
     }
     
     private void callVideo() {
-        Call<MovieDBResult<Video>> call = service.listVideos(movie.getId(), BuildConfig.MOVIE_DB_API_KEY);
+        Call<MovieDBResult<Video>> call = service.listVideos(idMovie, BuildConfig.MOVIE_DB_API_KEY);
         call.enqueue(new Callback<MovieDBResult<Video>>() {
             @Override
             public void onResponse(Call<MovieDBResult<Video>> call, Response<MovieDBResult<Video>> response) {

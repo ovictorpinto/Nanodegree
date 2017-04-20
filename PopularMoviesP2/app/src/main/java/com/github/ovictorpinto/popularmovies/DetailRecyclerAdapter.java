@@ -7,7 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.github.ovictorpinto.popularmovies.data.Contract;
 import com.github.ovictorpinto.popularmovies.model.Movie;
 import com.github.ovictorpinto.popularmovies.model.Review;
 import com.github.ovictorpinto.popularmovies.model.Video;
@@ -100,7 +102,7 @@ public class DetailRecyclerAdapter extends RecyclerView.Adapter<DetailRecyclerAd
     }
     
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, int position) {
         if (position == 0) {
             //fillHeader
             String vote = " - ";
@@ -119,6 +121,27 @@ public class DetailRecyclerAdapter extends RecyclerView.Adapter<DetailRecyclerAd
             holder.textviewContent.setText(movie.getOverview());
             holder.textviewTime.setText(context.getString(R.string.time_, movie.getRuntime()));
             holder.textviewTitle.setText(movie.getTitle());
+            holder.buttonAdd.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    context.getContentResolver().insert(Contract.Favorite.URI, Contract.Favorite.contentValuesFromMovie(movie));
+                    Toast.makeText(context, R.string.added, Toast.LENGTH_SHORT).show();
+                    holder.buttonAdd.setVisibility(View.GONE);
+                    holder.buttonRemove.setVisibility(View.VISIBLE);
+                }
+            });
+            holder.buttonRemove.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    context.getContentResolver().delete(Contract.Favorite.makeUriForMovie(movie.getId()), null, null);
+                    Toast.makeText(context, R.string.removed, Toast.LENGTH_SHORT).show();
+                    holder.buttonAdd.setVisibility(View.VISIBLE);
+                    holder.buttonRemove.setVisibility(View.GONE);
+                }
+            });
+            
+            holder.buttonAdd.setVisibility(movie.isFavorito() ? View.GONE : View.VISIBLE);
+            holder.buttonRemove.setVisibility(movie.isFavorito() ? View.VISIBLE : View.GONE);
             
             Picasso.with(context).load(movie.getFullPath()).into(holder.imageView);
         } else {
@@ -177,6 +200,8 @@ public class DetailRecyclerAdapter extends RecyclerView.Adapter<DetailRecyclerAd
         TextView textviewRating;
         
         ImageView imageView;
+        View buttonAdd;
+        View buttonRemove;
         
         public ViewHolder(View itemView) {
             super(itemView);
@@ -190,6 +215,8 @@ public class DetailRecyclerAdapter extends RecyclerView.Adapter<DetailRecyclerAd
             textviewRating = (TextView) itemView.findViewById(R.id.textview_vote);
             
             imageView = (ImageView) itemView.findViewById(R.id.imageview);
+            buttonAdd = itemView.findViewById(R.id.button_add);
+            buttonRemove = itemView.findViewById(R.id.button_remove);
         }
     }
 }
